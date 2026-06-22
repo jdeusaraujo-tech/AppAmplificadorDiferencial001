@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>JDVIRTUAL - Amplificador Diferencial Digital 3D</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
     </script>
@@ -30,6 +30,9 @@
             height: 100vh;
             width: 100vw;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
         #app-container {
             display: grid;
@@ -38,106 +41,248 @@
             height: 100vh;
             width: 100vw;
             gap: 0;
+            transition: all 0.3s ease;
+        }
+        /* Layouts alternativos */
+        #app-container.layout-tablet {
+            grid-template-columns: 1fr 320px;
+            grid-template-rows: 1fr 280px;
+        }
+        #app-container.layout-smartphone {
+            grid-template-columns: 1fr;
+            grid-template-rows: 40vh 28vh auto;
         }
         #viewport-3d {
-            grid-column: 1; grid-row: 1;
             position: relative;
             cursor: grab;
             border-right: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
             background: radial-gradient(ellipse at center, #1a1f2b 0%, #0a0d14 100%);
-            min-width: 0; min-height: 0;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .layout-smartphone #viewport-3d {
+            border-right: none;
         }
         #viewport-3d:active { cursor: grabbing; }
         #viewport-3d canvas { display: block; }
         #viewport-label {
-            position: absolute; top: 12px; left: 16px;
-            font-size: 13px; font-weight: 600; color: var(--text-secondary);
-            pointer-events: none; letter-spacing: 0.04em; text-transform: uppercase;
-            background: rgba(13,17,23,0.8); padding: 6px 12px; border-radius: 6px;
+            position: absolute;
+            top: 12px;
+            left: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            pointer-events: none;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            background: rgba(13,17,23,0.8);
+            padding: 6px 12px;
+            border-radius: 6px;
             border: 1px solid var(--border);
+            z-index: 5;
         }
+        .layout-smartphone #viewport-label { font-size: 10px; padding: 4px 8px; top: 8px; left: 8px; }
         #viewport-hint {
-            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-            font-size: 11px; color: var(--text-secondary); pointer-events: none;
-            letter-spacing: 0.03em; background: rgba(13,17,23,0.75);
-            padding: 4px 14px; border-radius: 20px; border: 1px solid var(--border);
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: var(--text-secondary);
+            pointer-events: none;
+            letter-spacing: 0.03em;
+            background: rgba(13,17,23,0.75);
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            white-space: nowrap;
+            z-index: 5;
         }
+        .layout-smartphone #viewport-hint { font-size: 9px; padding: 3px 10px; bottom: 6px; }
         #panel {
-            grid-column: 2; grid-row: 1 / 3;
-            background: var(--panel-bg); border-left: 1px solid var(--border);
-            padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;
-            overflow-y: auto; overflow-x: hidden; min-width: 340px; z-index: 10;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--border);
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-width: 300px;
+            z-index: 10;
+        }
+        .layout-smartphone #panel {
+            grid-column: 1;
+            grid-row: 3;
+            border-left: none;
+            border-top: 1px solid var(--border);
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            min-width: 0;
+            max-height: 45vh;
         }
         #panel h2 {
-            font-size: 16px; font-weight: 700; letter-spacing: 0.03em;
-            color: var(--text); text-align: center; margin-bottom: 2px;
-            display: flex; align-items: center; gap: 8px; justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
         }
+        .layout-smartphone #panel h2 { font-size: 13px; width: 100%; }
         #panel h2 .dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--accent-green); animation: pulse-dot 1.5s infinite;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse-dot 1.5s infinite;
         }
         @keyframes pulse-dot {
-            0%,100%{ box-shadow: 0 0 6px var(--accent-green); }
-            50%{ box-shadow: 0 0 16px var(--accent-green); }
+            0%,
+            100% { box-shadow: 0 0 6px var(--accent-green); }
+            50% { box-shadow: 0 0 16px var(--accent-green); }
         }
+        /* Barra de ferramentas de visualização */
+        .view-toolbar {
+            display: flex;
+            gap: 6px;
+            background: var(--btn-bg);
+            border-radius: 10px;
+            padding: 4px;
+            border: 1px solid var(--border);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .view-btn {
+            flex: 1;
+            padding: 8px 6px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: 0.03em;
+            transition: all 0.25s;
+            background: transparent;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .view-btn .icon { font-size: 18px; }
+        .view-btn.active { background: var(--btn-active); color: #fff; box-shadow: 0 2px 8px rgba(31, 111, 235, 0.4); }
+        .view-btn:hover:not(.active) { background: var(--btn-hover); color: var(--text); }
         .mode-selector {
-            display: flex; gap: 6px; background: var(--btn-bg);
-            border-radius: 10px; padding: 4px; border: 1px solid var(--border);
+            display: flex;
+            gap: 6px;
+            background: var(--btn-bg);
+            border-radius: 10px;
+            padding: 4px;
+            border: 1px solid var(--border);
         }
         .mode-btn {
-            flex: 1; padding: 10px 8px; border: none; border-radius: 7px;
-            cursor: pointer; font-weight: 600; font-size: 13px;
-            letter-spacing: 0.03em; transition: all 0.25s;
-            background: transparent; color: var(--text-secondary);
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.03em;
+            transition: all 0.25s;
+            background: transparent;
+            color: var(--text-secondary);
         }
-        .mode-btn.active { background: var(--btn-active); color: #fff; box-shadow: 0 2px 8px rgba(31,111,235,0.4); }
+        .mode-btn.active { background: var(--btn-active); color: #fff; box-shadow: 0 2px 8px rgba(31, 111, 235, 0.4); }
         .mode-btn:hover:not(.active) { background: var(--btn-hover); color: var(--text); }
         .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .preset-btn {
-            padding: 9px 6px; border-radius: 7px; border: 1px solid var(--border);
-            cursor: pointer; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
-            transition: all 0.2s; background: var(--btn-bg); color: var(--text); text-align: center;
+            padding: 9px 6px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: all 0.2s;
+            background: var(--btn-bg);
+            color: var(--text);
+            text-align: center;
         }
         .preset-btn:hover { border-color: var(--accent); background: var(--btn-hover); }
         .preset-btn.selected { border-color: var(--accent); background: #1a3a5c; color: #fff; }
         .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn {
-            padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border);
-            cursor: pointer; font-weight: 700; font-size: 13px; letter-spacing: 0.03em;
-            transition: all 0.25s; flex: 1; min-width: 80px; text-align: center;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.03em;
+            transition: all 0.25s;
+            flex: 1;
+            min-width: 70px;
+            text-align: center;
         }
         .btn-reset {
-            background: var(--accent-red); color: #fff; border-color: var(--accent-red);
+            background: var(--accent-red);
+            color: #fff;
+            border-color: var(--accent-red);
             font-weight: 700;
         }
-        .btn-reset:hover { background: #d63b33; box-shadow: 0 0 20px rgba(248,81,73,0.5); transform: scale(1.03); }
+        .btn-reset:hover { background: #d63b33; box-shadow: 0 0 20px rgba(248, 81, 73, 0.5); transform: scale(1.03); }
         .btn-auto-set { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
-        .btn-auto-set:hover { background: #35a043; box-shadow: 0 0 18px rgba(63,185,80,0.5); }
+        .btn-auto-set:hover { background: #35a043; box-shadow: 0 0 18px rgba(63, 185, 80, 0.5); }
         .btn-storyboard {
-            background: #6f42c1; color: white; border-color: #6f42c1;
+            background: #6f42c1;
+            color: white;
+            border-color: #6f42c1;
             margin-top: 4px;
         }
-        .btn-storyboard:hover { background: #5a32a3; box-shadow: 0 0 18px rgba(111,66,193,0.5); }
+        .btn-storyboard:hover { background: #5a32a3; box-shadow: 0 0 18px rgba(111, 66, 193, 0.5); }
         #chart-container {
-            grid-column: 1; grid-row: 2;
-            background: var(--panel-bg); border-top: 1px solid var(--border);
-            border-right: 1px solid var(--border); padding: 10px 14px 8px;
-            position: relative; min-height: 280px; display: flex; flex-direction: column;
+            background: var(--panel-bg);
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            padding: 10px 14px 8px;
+            position: relative;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+        }
+        .layout-smartphone #chart-container {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: none;
+            min-height: 200px;
         }
         #chart-container h3 {
-            font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
-            color: var(--text-secondary); text-transform: uppercase; margin-bottom: 2px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 2px;
         }
         #trend-chart { flex: 1; min-height: 0; width: 100%; }
         .value-display {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
-            font-size: 10px; color: var(--text-secondary);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 10px;
+            font-size: 10px;
+            color: var(--text-secondary);
         }
         .value-display span { color: var(--accent-green); font-weight: 700; font-size: 11px; }
-
-        /* Modal Storyboard */
         .modal {
             display: none;
             position: fixed;
@@ -146,7 +291,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
         }
@@ -156,10 +301,10 @@
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 20px;
-            max-width: 90vw;
+            max-width: 95vw;
             max-height: 90vh;
             overflow: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
             position: relative;
         }
         .modal-close {
@@ -176,480 +321,524 @@
         .modal-close:hover { color: var(--accent-red); }
         @media (max-width: 900px) {
             #app-container { grid-template-columns: 1fr; grid-template-rows: 45vh 30vh auto; }
-            #panel { grid-column: 1; grid-row: 3; flex-direction: row; flex-wrap: wrap; }
+            #panel { grid-column: 1; grid-row: 3; flex-direction: row; flex-wrap: wrap; min-width: 0; }
             #chart-container { grid-column: 1; grid-row: 2; }
             #viewport-3d { grid-column: 1; grid-row: 1; }
         }
     </style>
 </head>
 <body>
-<div id="app-container">
-    <div id="viewport-3d">
-        <div id="viewport-label">JDVIRTUAL - Amplificador Diferencial Digital 3D</div>
-        <div id="viewport-hint">🖱️ Arraste para girar | Scroll zoom | RESET para corrigir falhas</div>
-    </div>
-    <div id="panel">
-        <h2><span class="dot"></span> JDVIRTUAL - Amplificador Diferencial Digital 3D</h2>
-        <div class="mode-selector">
-            <button class="mode-btn active" id="btn-auto-mode">🤖 Automático</button>
-            <button class="mode-btn" id="btn-manual-mode">🎛️ Manual</button>
+    <div id="app-container" class="layout-desktop">
+        <div id="viewport-3d">
+            <div id="viewport-label">JDVIRTUAL - Amplificador Diferencial Digital 3D</div>
+            <div id="viewport-hint">🖱️ Arraste para girar | Scroll zoom | RESET para corrigir falhas</div>
         </div>
-        <div id="auto-presets">
-            <p style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;font-weight:600;">SET-POINTS AUTOMÁTICOS:</p>
-            <div class="preset-grid">
-                <button class="preset-btn selected" data-preset="0">Ganho 1x<br><small>R1=R3=10k R2=R4=10k</small></button>
-                <button class="preset-btn" data-preset="1">Ganho 10x<br><small>R1=R3=1k R2=R4=10k</small></button>
-                <button class="preset-btn" data-preset="2">Ganho 100x<br><small>R1=R3=1k R2=R4=100k</small></button>
-                <button class="preset-btn" data-preset="3">Atenuador<br><small>R1=R3=10k R2=R4=1k</small></button>
+        <div id="panel">
+            <h2><span class="dot"></span> JDVIRTUAL - Amplificador Diferencial Digital 3D</h2>
+            <!-- Barra de opções de visualização/resolução -->
+            <div class="view-toolbar">
+                <button class="view-btn active" data-layout="desktop">
+                    <span class="icon">🖥️</span> Desktop (PC/Mac)
+                </button>
+                <button class="view-btn" data-layout="tablet">
+                    <span class="icon">📱</span> Tablet / Notebook
+                </button>
+                <button class="view-btn" data-layout="smartphone">
+                    <span class="icon">📱</span> Smartphone
+                </button>
+            </div>
+            <div class="mode-selector">
+                <button class="mode-btn active" id="btn-auto-mode">🤖 Automático</button>
+                <button class="mode-btn" id="btn-manual-mode">🎛️ Manual</button>
+            </div>
+            <div id="auto-presets">
+                <p style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;font-weight:600;">SET-POINTS AUTOMÁTICOS:</p>
+                <div class="preset-grid">
+                    <button class="preset-btn selected" data-preset="0">Ganho 1x<br><small>R1=R3=10k R2=R4=10k</small></button>
+                    <button class="preset-btn" data-preset="1">Ganho 10x<br><small>R1=R3=1k R2=R4=10k</small></button>
+                    <button class="preset-btn" data-preset="2">Ganho 100x<br><small>R1=R3=1k R2=R4=100k</small></button>
+                    <button class="preset-btn" data-preset="3">Atenuador<br><small>R1=R3=10k R2=R4=1k</small></button>
+                </div>
+            </div>
+            <div id="manual-sliders" style="display:none;">
+                <p style="font-size:11px;color:#d2991d;margin-bottom:4px;font-weight:600;">AJUSTE MANUAL:</p>
+                <div class="slider-group"><label>R1 (Ω) <span id="val-r1">10k</span></label><input type="range" id="slider-r1" min="100" max="100000" value="10000" step="100"></div>
+                <div class="slider-group"><label>R2 (Ω) <span id="val-r2">10k</span></label><input type="range" id="slider-r2" min="100" max="200000" value="10000" step="100"></div>
+                <div class="slider-group"><label>R3 (Ω) <span id="val-r3">10k</span></label><input type="range" id="slider-r3" min="100" max="100000" value="10000" step="100"></div>
+                <div class="slider-group"><label>R4 (Ω) <span id="val-r4">10k</span></label><input type="range" id="slider-r4" min="100" max="200000" value="10000" step="100"></div>
+                <div class="slider-group"><label>V1 — Inv. (V) <span id="val-v1">1.00</span></label><input type="range" id="slider-v1" min="-10" max="10" value="1" step="0.01"></div>
+                <div class="slider-group"><label>V2 — Não-Inv. (V) <span id="val-v2">2.00</span></label><input type="range" id="slider-v2" min="-10" max="10" value="2" step="0.01"></div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-auto-set" id="btn-apply-setpoint">✅ Aplicar Set-Point</button>
+                <button class="btn btn-reset" id="btn-reset">🔄 RESET (corrigir falhas)</button>
+            </div>
+            <button class="btn btn-storyboard" id="btn-show-storyboard">📋 Diagrama Esquemático (Storyboard)</button>
+            <div class="value-display" id="live-values">
+                <div>Vout: <span id="live-vout">--</span> V</div>
+                <div>Vout1 (Inv⁻): <span id="live-vout1">--</span> V</div>
+                <div>Vout2 (Não-Inv⁺): <span id="live-vout2">--</span> V</div>
+                <div>I1 (R1): <span id="live-i1">--</span> µA</div>
+                <div>I2 (R2): <span id="live-i2">--</span> µA</div>
+                <div>+Vs: <span id="live-pvs">+15.00</span> V</div>
+                <div>-Vs: <span id="live-nvs">-15.00</span> V</div>
+                <div>Modo: <span id="live-mode">Automático</span></div>
             </div>
         </div>
-        <div id="manual-sliders" style="display:none;">
-            <p style="font-size:11px;color:#d2991d;margin-bottom:4px;font-weight:600;">AJUSTE MANUAL:</p>
-            <div class="slider-group"><label>R1 (Ω) <span id="val-r1">10k</span></label><input type="range" id="slider-r1" min="100" max="100000" value="10000" step="100"></div>
-            <div class="slider-group"><label>R2 (Ω) <span id="val-r2">10k</span></label><input type="range" id="slider-r2" min="100" max="200000" value="10000" step="100"></div>
-            <div class="slider-group"><label>R3 (Ω) <span id="val-r3">10k</span></label><input type="range" id="slider-r3" min="100" max="100000" value="10000" step="100"></div>
-            <div class="slider-group"><label>R4 (Ω) <span id="val-r4">10k</span></label><input type="range" id="slider-r4" min="100" max="200000" value="10000" step="100"></div>
-            <div class="slider-group"><label>V1 — Inv. (V) <span id="val-v1">1.00</span></label><input type="range" id="slider-v1" min="-10" max="10" value="1" step="0.01"></div>
-            <div class="slider-group"><label>V2 — Não-Inv. (V) <span id="val-v2">2.00</span></label><input type="range" id="slider-v2" min="-10" max="10" value="2" step="0.01"></div>
-        </div>
-        <div class="btn-row">
-            <button class="btn btn-auto-set" id="btn-apply-setpoint">✅ Aplicar Set-Point</button>
-            <button class="btn btn-reset" id="btn-reset">🔄 RESET (corrigir falhas)</button>
-        </div>
-        <button class="btn btn-storyboard" id="btn-show-storyboard">📋 Diagrama Esquemático (Storyboard)</button>
-        <div class="value-display" id="live-values">
-            <div>Vout: <span id="live-vout">--</span> V</div>
-            <div>Vout1 (Inv⁻): <span id="live-vout1">--</span> V</div>
-            <div>Vout2 (Não-Inv⁺): <span id="live-vout2">--</span> V</div>
-            <div>I1 (R1): <span id="live-i1">--</span> µA</div>
-            <div>I2 (R2): <span id="live-i2">--</span> µA</div>
-            <div>+Vs: <span id="live-pvs">+15.00</span> V</div>
-            <div>-Vs: <span id="live-nvs">-15.00</span> V</div>
-            <div>Modo: <span id="live-mode">Automático</span></div>
+        <div id="chart-container">
+            <h3>📈 Gráfico de Tendência — Regime Contínuo</h3>
+            <canvas id="trend-chart"></canvas>
         </div>
     </div>
-    <div id="chart-container">
-        <h3>📈 Gráfico de Tendência — Regime Contínuo</h3>
-        <canvas id="trend-chart"></canvas>
+
+    <div id="storyboard-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="btn-close-modal">&times;</button>
+            <h2 style="color:var(--text); margin-bottom:12px; text-align:center;">📐 JDVIRTUAL - Storyboard Profissional – Amplificador Diferencial</h2>
+            <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; background:#ffffff; border-radius:12px;">
+                <rect width="800" height="500" fill="#f8f9fa" rx="12" />
+                <text x="400" y="35" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">JDVIRTUAL - Amplificador Diferencial Digital 3D – Configuração Clássica</text>
+                <line x1="50" y1="180" x2="750" y2="180" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" />
+                <text x="30" y="175" font-family="Segoe UI" font-size="11" fill="#64748b">+Vs (+15V)</text>
+                <line x1="50" y1="360" x2="750" y2="360" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" />
+                <text x="30" y="365" font-family="Segoe UI" font-size="11" fill="#64748b">-Vs (-15V)</text>
+                <polygon points="400,180 400,340 550,260" fill="#e2e8f0" stroke="#0f172a" stroke-width="3" />
+                <text x="440" y="270" font-family="Segoe UI" font-size="18" font-weight="bold" fill="#0f172a">Amp</text>
+                <text x="385" y="175" font-family="Segoe UI" font-size="10" fill="#475569">2 (-)</text>
+                <text x="385" y="350" font-family="Segoe UI" font-size="10" fill="#475569">3 (+)</text>
+                <text x="555" y="255" font-family="Segoe UI" font-size="10" fill="#475569">6 (out)</text>
+                <circle cx="120" cy="200" r="8" fill="#3b82f6" />
+                <text x="100" y="190" font-family="Segoe UI" font-size="12" font-weight="bold" fill="#1e293b">V1</text>
+                <circle cx="120" cy="320" r="8" fill="#3b82f6" />
+                <text x="100" y="310" font-family="Segoe UI" font-size="12" font-weight="bold" fill="#1e293b">V2</text>
+                <rect x="180" y="192" width="60" height="16" fill="#fbbf24" stroke="#92400e" stroke-width="2" rx="4" />
+                <text x="210" y="204" font-family="Segoe UI" font-size="11" font-weight="bold" fill="#1e293b">R1</text>
+                <line x1="240" y1="200" x2="390" y2="200" stroke="#475569" stroke-width="2" />
+                <rect x="450" y="192" width="60" height="16" fill="#fbbf24" stroke="#92400e" stroke-width="2" rx="4" />
+                <text x="480" y="204" font-family="Segoe UI" font-size="11" font-weight="bold" fill="#1e293b">R2</text>
+                <line x1="390" y1="200" x2="450" y2="200" stroke="#475569" stroke-width="2" />
+                <line x1="510" y1="200" x2="650" y2="200" stroke="#475569" stroke-width="2" />
+                <circle cx="650" cy="200" r="8" fill="#10b981" />
+                <text x="665" y="195" font-family="Segoe UI" font-size="12" font-weight="bold" fill="#1e293b">Vout</text>
+                <rect x="180" y="312" width="60" height="16" fill="#fbbf24" stroke="#92400e" stroke-width="2" rx="4" />
+                <text x="210" y="324" font-family="Segoe UI" font-size="11" font-weight="bold" fill="#1e293b">R3</text>
+                <line x1="240" y1="320" x2="390" y2="320" stroke="#475569" stroke-width="2" />
+                <rect x="450" y="312" width="60" height="16" fill="#fbbf24" stroke="#92400e" stroke-width="2" rx="4" />
+                <text x="480" y="324" font-family="Segoe UI" font-size="11" font-weight="bold" fill="#1e293b">R4</text>
+                <line x1="510" y1="320" x2="650" y2="320" stroke="#475569" stroke-width="2" />
+                <line x1="650" y1="320" x2="680" y2="320" stroke="#475569" stroke-width="2" />
+                <line x1="680" y1="320" x2="680" y2="390" stroke="#475569" stroke-width="2" />
+                <text x="690" y="395" font-family="Segoe UI" font-size="11" fill="#475569">GND</text>
+                <line x1="680" y1="390" x2="710" y2="390" stroke="#475569" stroke-width="2" />
+                <path d="M 550 260 L 550 200" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+                <text x="280" y="185" font-family="Segoe UI" font-size="11" fill="#2563eb" font-style="italic">I1</text>
+                <text x="500" y="185" font-family="Segoe UI" font-size="11" fill="#2563eb" font-style="italic">I2</text>
+                <text x="380" y="175" font-family="Segoe UI" font-size="10" fill="#b91c1c">V⁻</text>
+                <text x="380" y="340" font-family="Segoe UI" font-size="10" fill="#b91c1c">V⁺</text>
+                <text x="620" y="190" font-family="Segoe UI" font-size="10" fill="#b91c1c">Vout</text>
+                <rect x="50" y="420" width="700" height="60" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" rx="8" />
+                <text x="400" y="445" text-anchor="middle" font-family="Segoe UI" font-size="14" font-weight="bold" fill="#0f172a">Vout = V2 × (R4/(R3+R4)) × (1 + R2/R1) − V1 × (R2/R1)</text>
+                <text x="400" y="465" text-anchor="middle" font-family="Segoe UI" font-size="12" fill="#475569">Ganho Diferencial: Ad = R2/R1 (se R1=R3 e R2=R4)</text>
+                <line x1="50" y1="180" x2="50" y2="360" stroke="#94a3b8" stroke-width="2" />
+                <text x="20" y="270" font-family="Segoe UI" font-size="12" fill="#64748b" transform="rotate(-90 20,270)">Alimentação simétrica</text>
+            </svg>
+        </div>
     </div>
-</div>
 
-<!-- Modal do Storyboard / Diagrama Esquemático -->
-<div id="storyboard-modal" class="modal">
-    <div class="modal-content">
-        <button class="modal-close" id="btn-close-modal">&times;</button>
-        <h2 style="color:var(--text); margin-bottom:12px; text-align:center;">📐 JDVIRTUAL - Storyboard Profissional – Amplificador Diferencial</h2>
-        <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; background:#ffffff; border-radius:12px;">
-            <!-- Fundo do esquema -->
-            <rect width="800" height="500" fill="#f8f9fa" rx="12" />
-            <!-- Título -->
-            <text x="400" y="35" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">JDVIRTUAL - Amplificador Diferencial Digital 3D – Configuração Clássica</text>
-            <!-- Linhas de alimentação -->
-            <line x1="50" y1="180" x2="750" y2="180" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" />
-            <text x="30" y="175" font-family="Segoe UI" font-size="11" fill="#64748b">+Vs (+15V)</text>
-            <line x1="50" y1="360" x2="750" y2="360" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" />
-            <text x="30" y="365" font-family="Segoe UI" font-size="11" fill="#64748b">-Vs (-15V)</text>
-            <!-- Amp-op (triângulo) -->
-            <polygon points="400,180 400,340 550,260" fill="#e2e8f0" stroke="#0f172a" stroke-width="3" />
-            <text x="440" y="270" font-family="Segoe UI" font-size="18" font-weight="bold" fill="#0f172a">Amp</text>
-            <!-- Pinos do amp-op -->
-            <text x="385" y="175" font-family="Segoe UI" font-size="10" fill="#475569">2 (-)</text>
-            <text x="385" y="350" font-family="Segoe UI" font-size="10" fill="#475569">3 (+)</text>
-            <text x="555" y="255" font-family="Segoe UI" font-size="10" fill="#475569">6 (out)</text>
-            <!-- Entradas -->
-            <circle cx="120" cy="200" r="8" fill="#3b82f6" />
-            <text x="100" y="190" font-family="Segoe UI" font-size="12" font-weight="bold" fill="#1e293b">V1</text>
-            <circle cx="120" cy="320" r="8" fill="#3b82f6" />
-            <text x="100" y="310" font-family="Segoe UI" font-size="12" font-weight="bold" fill="#1e293b">V2</text>
-            <!-- Resistores -->
-            <rect x="180" y="192" width="60" height="16" fill="#fbbf24" stroke="#92400e" stroke-width="2" rx="4" />
-            <text x="210" y="204" font-family="Segoe UI" font-size="11" font-weight="bold" fill="#1e293b">R1</text>
-            <line x1="240" y1="200" x2="390" y2="200" stroke="#475569" stroke-width="2" />
-            <rect x="450" y="192" width="60" height="16" fill="#fbbf24" stroke="#92400e" stroke-width="2" rx="4" />
-            <text x="480" y="204" font-family="Segoe UI" font-size="11" font-weight="bold" fill="#1e293b">R2</text>
-            <line x1="390" y1="200" x2="450" y2="200" stroke="#475569" stroke-width="2" />
-            <line x1="510" y1="200" x2="650" y2="200" stroke="#475569" stroke-width="2" />
-            <circle cx="650" cy="200" r="8" fill="#10b981" />
-            <text x="665" y="195" font-family="Segoe UI" font-size="12" font-weight="bold" fill="#1e293b">Vout</text>
-            <rect x="180" y="312" width="60" height="16" fill="#fbbf24" stroke="#92400e" stroke-width="2" rx="4" />
-            <text x="210" y="324" font-family="Segoe UI" font-size="11" font-weight="bold" fill="#1e293b">R3</text>
-            <line x1="240" y1="320" x2="390" y2="320" stroke="#475569" stroke-width="2" />
-            <rect x="450" y="312" width="60" height="16" fill="#fbbf24" stroke="#92400e" stroke-width="2" rx="4" />
-            <text x="480" y="324" font-family="Segoe UI" font-size="11" font-weight="bold" fill="#1e293b">R4</text>
-            <line x1="510" y1="320" x2="650" y2="320" stroke="#475569" stroke-width="2" />
-            <line x1="650" y1="320" x2="680" y2="320" stroke="#475569" stroke-width="2" />
-            <line x1="680" y1="320" x2="680" y2="390" stroke="#475569" stroke-width="2" />
-            <text x="690" y="395" font-family="Segoe UI" font-size="11" fill="#475569">GND</text>
-            <line x1="680" y1="390" x2="710" y2="390" stroke="#475569" stroke-width="2" />
-            <!-- Conexão feedback -->
-            <path d="M 550 260 L 550 200" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow)" />
-            <!-- Corrente I1 e I2 -->
-            <text x="280" y="185" font-family="Segoe UI" font-size="11" fill="#2563eb" font-style="italic">I1</text>
-            <text x="500" y="185" font-family="Segoe UI" font-size="11" fill="#2563eb" font-style="italic">I2</text>
-            <!-- Tensões nodais -->
-            <text x="380" y="175" font-family="Segoe UI" font-size="10" fill="#b91c1c">V⁻</text>
-            <text x="380" y="340" font-family="Segoe UI" font-size="10" fill="#b91c1c">V⁺</text>
-            <text x="620" y="190" font-family="Segoe UI" font-size="10" fill="#b91c1c">Vout</text>
-            <!-- Fórmula -->
-            <rect x="50" y="420" width="700" height="60" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" rx="8" />
-            <text x="400" y="445" text-anchor="middle" font-family="Segoe UI" font-size="14" font-weight="bold" fill="#0f172a">Vout = V2 × (R4/(R3+R4)) × (1 + R2/R1) − V1 × (R2/R1)</text>
-            <text x="400" y="465" text-anchor="middle" font-family="Segoe UI" font-size="12" fill="#475569">Ganho Diferencial: Ad = R2/R1 (se R1=R3 e R2=R4)</text>
-            <!-- Setas de fonte -->
-            <line x1="50" y1="180" x2="50" y2="360" stroke="#94a3b8" stroke-width="2" />
-            <text x="20" y="270" font-family="Segoe UI" font-size="12" fill="#64748b" transform="rotate(-90 20,270)">Alimentação simétrica</text>
-        </svg>
-    </div>
-</div>
+    <script type="importmap">
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+    </script>
 
-<script type="importmap">
-{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
-</script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        // ========== DOM refs ==========
+        const appContainer = document.getElementById('app-container');
+        const viewport = document.getElementById('viewport-3d');
+        const chartCanvas = document.getElementById('trend-chart');
+        const btnAutoMode = document.getElementById('btn-auto-mode');
+        const btnManualMode = document.getElementById('btn-manual-mode');
+        const autoPresetsDiv = document.getElementById('auto-presets');
+        const manualSlidersDiv = document.getElementById('manual-sliders');
+        const btnReset = document.getElementById('btn-reset');
+        const btnApplySetpoint = document.getElementById('btn-apply-setpoint');
+        const presetBtns = document.querySelectorAll('.preset-btn');
+        const btnShowStoryboard = document.getElementById('btn-show-storyboard');
+        const modal = document.getElementById('storyboard-modal');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const viewBtns = document.querySelectorAll('.view-btn');
+        const liveSpans = {
+            vout: document.getElementById('live-vout'),
+            vout1: document.getElementById('live-vout1'),
+            vout2: document.getElementById('live-vout2'),
+            i1: document.getElementById('live-i1'),
+            i2: document.getElementById('live-i2'),
+            pvs: document.getElementById('live-pvs'),
+            nvs: document.getElementById('live-nvs'),
+            mode: document.getElementById('live-mode'),
+        };
 
-// ========== DOM refs ==========
-const viewport = document.getElementById('viewport-3d');
-const chartCanvas = document.getElementById('trend-chart');
-const btnAutoMode = document.getElementById('btn-auto-mode');
-const btnManualMode = document.getElementById('btn-manual-mode');
-const autoPresetsDiv = document.getElementById('auto-presets');
-const manualSlidersDiv = document.getElementById('manual-sliders');
-const btnReset = document.getElementById('btn-reset');
-const btnApplySetpoint = document.getElementById('btn-apply-setpoint');
-const presetBtns = document.querySelectorAll('.preset-btn');
-const btnShowStoryboard = document.getElementById('btn-show-storyboard');
-const modal = document.getElementById('storyboard-modal');
-const btnCloseModal = document.getElementById('btn-close-modal');
-const liveSpans = {
-    vout: document.getElementById('live-vout'),
-    vout1: document.getElementById('live-vout1'),
-    vout2: document.getElementById('live-vout2'),
-    i1: document.getElementById('live-i1'),
-    i2: document.getElementById('live-i2'),
-    pvs: document.getElementById('live-pvs'),
-    nvs: document.getElementById('live-nvs'),
-    mode: document.getElementById('live-mode'),
-};
+        // ========== Controle de layout (visualização) ==========
+        viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const layout = btn.dataset.layout;
+                appContainer.className = appContainer.className.replace(/layout-\w+/g, '');
+                appContainer.classList.add(`layout-${layout}`);
+                // Ajusta renderer e câmera após mudança de layout
+                setTimeout(() => {
+                    camera.aspect = viewport.clientWidth / viewport.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+                }, 50);
+            });
+        });
 
-// ========== Modal do Storyboard ==========
-btnShowStoryboard.addEventListener('click', () => { modal.classList.add('active'); });
-btnCloseModal.addEventListener('click', () => { modal.classList.remove('active'); });
-modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+        // ========== Modal do Storyboard ==========
+        btnShowStoryboard.addEventListener('click', () => { modal.classList.add('active'); });
+        btnCloseModal.addEventListener('click', () => { modal.classList.remove('active'); });
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
 
-// ========== Estado da simulação ==========
-let simulationMode = 'auto';
-let currentPreset = 0;
-let simParams = { R1:10000, R2:10000, R3:10000, R4:10000, V1:1.0, V2:2.0, plusVs:15.0, minusVs:-15.0 };
-let computedValues = { Vout:0, Vout1:0, Vout2:0, I1:0, I2:0, plusVs:15.0, minusVs:-15.0 };
+        // ========== Estado da simulação ==========
+        let simulationMode = 'auto';
+        let currentPreset = 0;
+        let simParams = { R1: 10000, R2: 10000, R3: 10000, R4: 10000, V1: 1.0, V2: 2.0, plusVs: 15.0, minusVs: -15.0 };
+        let computedValues = { Vout: 0, Vout1: 0, Vout2: 0, I1: 0, I2: 0, plusVs: 15.0, minusVs: -15.0 };
 
-const presets = [
-    { R1:10000, R2:10000, R3:10000, R4:10000, V1:1.0, V2:2.0 },
-    { R1:1000, R2:10000, R3:1000, R4:10000, V1:0.5, V2:1.0 },
-    { R1:1000, R2:100000, R3:1000, R4:100000, V1:0.05, V2:0.1 },
-    { R1:10000, R2:1000, R3:10000, R4:1000, V1:5.0, V2:3.0 },
-];
+        const presets = [
+            { R1: 10000, R2: 10000, R3: 10000, R4: 10000, V1: 1.0, V2: 2.0 },
+            { R1: 1000, R2: 10000, R3: 1000, R4: 10000, V1: 0.5, V2: 1.0 },
+            { R1: 1000, R2: 100000, R3: 1000, R4: 100000, V1: 0.05, V2: 0.1 },
+            { R1: 10000, R2: 1000, R3: 10000, R4: 1000, V1: 5.0, V2: 3.0 },
+        ];
 
-function computeDiffAmp(R1,R2,R3,R4,V1,V2,plusVs,minusVs) {
-    const Vplus = V2 * (R4/(R3+R4));
-    const Vout_ideal = V2 * (R4/(R3+R4)) * ((R1+R2)/R1) - V1 * (R2/R1);
-    const satHi = plusVs - 1.5;
-    const satLo = minusVs + 1.5;
-    const Vout = Math.max(satLo, Math.min(satHi, Vout_ideal));
-    const Vminus = Vplus;
-    const I1 = (V1 - Vminus)/R1;
-    const I2 = (Vout - Vminus)/R2;
-    return { Vout, Vout1:Vminus, Vout2:Vplus, I1, I2, plusVs, minusVs };
-}
-
-function updateSimulation() {
-    const { R1,R2,R3,R4,V1,V2,plusVs,minusVs } = simParams;
-    computedValues = computeDiffAmp(
-        R1*(1+(Math.random()-0.5)*0.0002),
-        R2*(1+(Math.random()-0.5)*0.0002),
-        R3*(1+(Math.random()-0.5)*0.0002),
-        R4*(1+(Math.random()-0.5)*0.0002),
-        V1+(Math.random()-0.5)*0.002,
-        V2+(Math.random()-0.5)*0.002,
-        plusVs+(Math.random()-0.5)*0.015,
-        minusVs+(Math.random()-0.5)*0.015
-    );
-    updateLiveValues();
-}
-
-function updateLiveValues() {
-    liveSpans.vout.textContent = computedValues.Vout.toFixed(4);
-    liveSpans.vout1.textContent = computedValues.Vout1.toFixed(4);
-    liveSpans.vout2.textContent = computedValues.Vout2.toFixed(4);
-    liveSpans.i1.textContent = (computedValues.I1*1e6).toFixed(3);
-    liveSpans.i2.textContent = (computedValues.I2*1e6).toFixed(3);
-    liveSpans.pvs.textContent = computedValues.plusVs.toFixed(2);
-    liveSpans.nvs.textContent = computedValues.minusVs.toFixed(2);
-    liveSpans.mode.textContent = simulationMode==='auto'?'Automático 🤖':'Manual 🎛️';
-}
-
-function applyPreset(i) {
-    const p = presets[i];
-    simParams.R1=p.R1; simParams.R2=p.R2; simParams.R3=p.R3; simParams.R4=p.R4;
-    simParams.V1=p.V1; simParams.V2=p.V2;
-    currentPreset = i;
-    updateSlidersFromParams();
-    presetBtns.forEach((b,idx)=>b.classList.toggle('selected', idx===i));
-    updateSimulation();
-}
-
-function updateSlidersFromParams() {
-    document.getElementById('slider-r1').value = simParams.R1;
-    document.getElementById('slider-r2').value = simParams.R2;
-    document.getElementById('slider-r3').value = simParams.R3;
-    document.getElementById('slider-r4').value = simParams.R4;
-    document.getElementById('slider-v1').value = simParams.V1;
-    document.getElementById('slider-v2').value = simParams.V2;
-    updateSliderLabels();
-}
-
-function updateSliderLabels() {
-    document.getElementById('val-r1').textContent = formatOhm(simParams.R1);
-    document.getElementById('val-r2').textContent = formatOhm(simParams.R2);
-    document.getElementById('val-r3').textContent = formatOhm(simParams.R3);
-    document.getElementById('val-r4').textContent = formatOhm(simParams.R4);
-    document.getElementById('val-v1').textContent = simParams.V1.toFixed(2);
-    document.getElementById('val-v2').textContent = simParams.V2.toFixed(2);
-}
-
-function formatOhm(v) {
-    if(v>=1e6) return (v/1e6).toFixed(2)+'M';
-    if(v>=1e3) return (v/1e3).toFixed(1)+'k';
-    return v.toFixed(0);
-}
-
-// ========== Gráfico ==========
-const MAX_POINTS = 80;
-const chart = new Chart(chartCanvas, {
-    type: 'line',
-    data: { labels: [], datasets: [
-        { label:'R1 (Ω)', borderColor:'#ff6b6b', data:[], yAxisID:'y-res' },
-        { label:'R2 (Ω)', borderColor:'#4ecdc4', data:[], yAxisID:'y-res' },
-        { label:'R3 (Ω)', borderColor:'#45b7d1', data:[], yAxisID:'y-res' },
-        { label:'R4 (Ω)', borderColor:'#f9ca24', data:[], yAxisID:'y-res' },
-        { label:'I1 (µA)', borderColor:'#6c5ce7', data:[] },
-        { label:'I2 (µA)', borderColor:'#ff9ff3', data:[] },
-        { label:'+Vs (V)', borderColor:'#ff6348', data:[] },
-        { label:'-Vs (V)', borderColor:'#7bed9f', data:[] },
-        { label:'Vout (V)', borderColor:'#00ff88', data:[], borderWidth:3 },
-        { label:'Vout1 (V)', borderColor:'#e056a0', data:[] },
-        { label:'Vout2 (V)', borderColor:'#f368e0', data:[] },
-        { label:'Inv⁻ entrada', borderColor:'#ff9f43', data:[], borderDash:[4,2] },
-        { label:'Não-Inv⁺ entrada', borderColor:'#54a0ff', data:[], borderDash:[4,2] },
-    ]},
-    options: {
-        responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{ labels:{ color:'#8b949e', font:{size:9}, boxWidth:14, usePointStyle:true } } },
-        scales:{
-            x:{ ticks:{color:'#8b949e'}, grid:{color:'#21262d'} },
-            'y-default':{ position:'left', ticks:{color:'#8b949e'}, grid:{color:'#21262d'} },
-            'y-res':{ position:'right', ticks:{color:'#f9ca24', callback:v=>formatOhm(v)}, grid:{display:false} }
+        function computeDiffAmp(R1, R2, R3, R4, V1, V2, plusVs, minusVs) {
+            const Vplus = V2 * (R4 / (R3 + R4));
+            const Vout_ideal = V2 * (R4 / (R3 + R4)) * ((R1 + R2) / R1) - V1 * (R2 / R1);
+            const satHi = plusVs - 1.5;
+            const satLo = minusVs + 1.5;
+            const Vout = Math.max(satLo, Math.min(satHi, Vout_ideal));
+            const Vminus = Vplus;
+            const I1 = (V1 - Vminus) / R1;
+            const I2 = (Vout - Vminus) / R2;
+            return { Vout, Vout1: Vminus, Vout2: Vplus, I1, I2, plusVs, minusVs };
         }
-    }
-});
 
-function addChartPoint() {
-    const t = new Date().toLocaleTimeString('pt-BR',{hour12:false});
-    chart.data.labels.push(t);
-    chart.data.datasets[0].data.push(computedValues.R1||simParams.R1);
-    chart.data.datasets[1].data.push(computedValues.R2||simParams.R2);
-    chart.data.datasets[2].data.push(computedValues.R3||simParams.R3);
-    chart.data.datasets[3].data.push(computedValues.R4||simParams.R4);
-    chart.data.datasets[4].data.push(computedValues.I1*1e6);
-    chart.data.datasets[5].data.push(computedValues.I2*1e6);
-    chart.data.datasets[6].data.push(computedValues.plusVs);
-    chart.data.datasets[7].data.push(computedValues.minusVs);
-    chart.data.datasets[8].data.push(computedValues.Vout);
-    chart.data.datasets[9].data.push(computedValues.Vout1);
-    chart.data.datasets[10].data.push(computedValues.Vout2);
-    chart.data.datasets[11].data.push(computedValues.Vout1);
-    chart.data.datasets[12].data.push(computedValues.Vout2);
-    if(chart.data.labels.length>MAX_POINTS) {
-        chart.data.labels.shift();
-        chart.data.datasets.forEach(ds=>ds.data.shift());
-    }
-    chart.update();
-}
+        function updateSimulation() {
+            const { R1, R2, R3, R4, V1, V2, plusVs, minusVs } = simParams;
+            computedValues = computeDiffAmp(
+                R1 * (1 + (Math.random() - 0.5) * 0.0002),
+                R2 * (1 + (Math.random() - 0.5) * 0.0002),
+                R3 * (1 + (Math.random() - 0.5) * 0.0002),
+                R4 * (1 + (Math.random() - 0.5) * 0.0002),
+                V1 + (Math.random() - 0.5) * 0.002,
+                V2 + (Math.random() - 0.5) * 0.002,
+                plusVs + (Math.random() - 0.5) * 0.015,
+                minusVs + (Math.random() - 0.5) * 0.015
+            );
+            updateLiveValues();
+        }
 
-// ========== Cena 3D ==========
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d1117);
-const camera = new THREE.PerspectiveCamera(50, viewport.clientWidth/viewport.clientHeight, 0.5, 60);
-camera.position.set(8,6.5,9);
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(viewport.clientWidth, viewport.clientHeight);
-renderer.shadowMap.enabled = true;
-viewport.appendChild(renderer.domElement);
+        function updateLiveValues() {
+            liveSpans.vout.textContent = computedValues.Vout.toFixed(4);
+            liveSpans.vout1.textContent = computedValues.Vout1.toFixed(4);
+            liveSpans.vout2.textContent = computedValues.Vout2.toFixed(4);
+            liveSpans.i1.textContent = (computedValues.I1 * 1e6).toFixed(3);
+            liveSpans.i2.textContent = (computedValues.I2 * 1e6).toFixed(3);
+            liveSpans.pvs.textContent = computedValues.plusVs.toFixed(2);
+            liveSpans.nvs.textContent = computedValues.minusVs.toFixed(2);
+            liveSpans.mode.textContent = simulationMode === 'auto' ? 'Automático 🤖' : 'Manual 🎛️';
+        }
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0,0.3,0);
-controls.enableDamping = true;
-controls.update();
-
-scene.add(new THREE.AmbientLight(0x334455,2.5));
-const sun = new THREE.DirectionalLight(0xffeedd,6);
-sun.position.set(10,14,6);
-sun.castShadow = true;
-scene.add(sun);
-scene.add(new THREE.DirectionalLight(0x8899cc,2).position.set(-4,3,-3));
-
-const pcbGroup = new THREE.Group();
-scene.add(pcbGroup);
-const board = new THREE.Mesh(
-    new THREE.BoxGeometry(7.5,0.22,5.5),
-    new THREE.MeshStandardMaterial({color:0x1a5c1a,roughness:0.55})
-);
-board.position.y=0;
-board.receiveShadow=true;
-pcbGroup.add(board);
-
-function createResistor(x,z,ry=0) {
-    const g = new THREE.Group();
-    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,1.1,24),
-        new THREE.MeshStandardMaterial({color:0xddb860,roughness:0.5})).rotateZ(Math.PI/2));
-    [-0.3,-0.1,0.15,0.35].forEach((px,i)=>{
-        const band = new THREE.Mesh(new THREE.CylinderGeometry(0.135,0.135,0.07,24),
-            new THREE.MeshStandardMaterial({color:[0x8B4513,0x000,0xf00,0xffd700][i]}));
-        band.rotation.z=Math.PI/2; band.position.x=px; g.add(band);
-    });
-    [-0.58,0.58].forEach(px=>{
-        g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.4,12),
-            new THREE.MeshStandardMaterial({color:0xc0c0c0})).position.set(px,-0.18,0));
-    });
-    g.position.set(x,0.45,z); g.rotation.y=ry;
-    return g;
-}
-function createDIP8(x,z) {
-    const g = new THREE.Group();
-    g.add(new THREE.Mesh(new THREE.BoxGeometry(2,0.35,0.8),
-        new THREE.MeshStandardMaterial({color:0x1a1a1a})).position.set(0,0.3,0));
-    for(let i=0;i<4;i++) {
-        const pin = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.35,0.08),
-            new THREE.MeshStandardMaterial({color:0xd0d0d0}));
-        pin.position.set(-0.75+i*0.5,-0.05,-0.42); g.add(pin);
-        pin.clone().position.set(-0.75+i*0.5,-0.05,0.42); g.add(pin);
-    }
-    g.position.set(x,0.25,z);
-    return g;
-}
-pcbGroup.add(createDIP8(0,0));
-pcbGroup.add(createResistor(-2.2,-0.9,0));
-pcbGroup.add(createResistor(0.2,-1.6,Math.PI/2));
-pcbGroup.add(createResistor(-2.2,0.9,0));
-pcbGroup.add(createResistor(0.2,1.6,Math.PI/2));
-
-const ledMat = new THREE.MeshStandardMaterial({color:0x00ff44,emissive:0x003300,emissiveIntensity:0.4});
-const led = new THREE.Mesh(new THREE.SphereGeometry(0.12,20,20), ledMat);
-led.position.set(2.8,0.3,-0.5);
-pcbGroup.add(led);
-
-// ========== LOOP ==========
-let animFrameId = null;
-let simTimer = 0, chartTimer = 0;
-
-function loop(ts) {
-    animFrameId = requestAnimationFrame(loop);
-    const dt = Math.min(0.1, 0.016);
-    controls.update();
-    simTimer += dt;
-    chartTimer += dt;
-    if(simTimer>=0.5) { simTimer=0; updateSimulation(); ledMat.emissive.set(computedValues.Vout>0?0x00ff44:0xff4400); ledMat.emissiveIntensity=0.2+Math.abs(computedValues.Vout)/15*2.5; }
-    if(chartTimer>=0.8) { chartTimer=0; addChartPoint(); }
-    renderer.render(scene,camera);
-}
-
-function startLoop() {
-    if(animFrameId) cancelAnimationFrame(animFrameId);
-    simTimer=0; chartTimer=0;
-    animFrameId = requestAnimationFrame(loop);
-}
-
-// ========== RESET ==========
-function fullReset() {
-    if(animFrameId) { cancelAnimationFrame(animFrameId); animFrameId=null; }
-    simulationMode = 'auto';
-    currentPreset = 0;
-    simParams = { R1:10000,R2:10000,R3:10000,R4:10000,V1:1.0,V2:2.0,plusVs:15.0,minusVs:-15.0 };
-    computedValues = computeDiffAmp(10000,10000,10000,10000,1,2,15,-15);
-    btnAutoMode.classList.add('active');
-    btnManualMode.classList.remove('active');
-    autoPresetsDiv.style.display = 'block';
-    manualSlidersDiv.style.display = 'none';
-    updateSlidersFromParams();
-    presetBtns.forEach((b,i)=>b.classList.toggle('selected',i===0));
-    updateLiveValues();
-    chart.data.labels.length = 0;
-    chart.data.datasets.forEach(ds=>ds.data.length=0);
-    chart.update();
-    camera.position.set(8,6.5,9);
-    controls.target.set(0,0.3,0);
-    controls.update();
-    ledMat.emissive.set(0x003300);
-    ledMat.emissiveIntensity = 0.4;
-    startLoop();
-}
-
-// ========== Eventos ==========
-btnReset.addEventListener('click', fullReset);
-btnAutoMode.addEventListener('click',()=>{
-    simulationMode='auto';
-    btnAutoMode.classList.add('active');
-    btnManualMode.classList.remove('active');
-    autoPresetsDiv.style.display='block';
-    manualSlidersDiv.style.display='none';
-    applyPreset(currentPreset);
-});
-btnManualMode.addEventListener('click',()=>{
-    simulationMode='manual';
-    btnManualMode.classList.add('active');
-    btnAutoMode.classList.remove('active');
-    autoPresetsDiv.style.display='none';
-    manualSlidersDiv.style.display='block';
-    updateSlidersFromParams();
-});
-presetBtns.forEach((b,i)=>b.addEventListener('click',()=>{ if(simulationMode==='auto') applyPreset(i); }));
-btnApplySetpoint.addEventListener('click',()=>{
-    if(simulationMode==='manual'){
-        simParams.R1=+document.getElementById('slider-r1').value;
-        simParams.R2=+document.getElementById('slider-r2').value;
-        simParams.R3=+document.getElementById('slider-r3').value;
-        simParams.R4=+document.getElementById('slider-r4').value;
-        simParams.V1=+document.getElementById('slider-v1').value;
-        simParams.V2=+document.getElementById('slider-v2').value;
-        updateSliderLabels();
-        updateSimulation();
-    } else applyPreset(currentPreset);
-});
-['slider-r1','slider-r2','slider-r3','slider-r4','slider-v1','slider-v2'].forEach(id=>{
-    document.getElementById(id).addEventListener('input',()=>{
-        if(simulationMode==='manual'){
-            simParams.R1=+document.getElementById('slider-r1').value;
-            simParams.R2=+document.getElementById('slider-r2').value;
-            simParams.R3=+document.getElementById('slider-r3').value;
-            simParams.R4=+document.getElementById('slider-r4').value;
-            simParams.V1=+document.getElementById('slider-v1').value;
-            simParams.V2=+document.getElementById('slider-v2').value;
-            updateSliderLabels();
+        function applyPreset(i) {
+            const p = presets[i];
+            simParams.R1 = p.R1;
+            simParams.R2 = p.R2;
+            simParams.R3 = p.R3;
+            simParams.R4 = p.R4;
+            simParams.V1 = p.V1;
+            simParams.V2 = p.V2;
+            currentPreset = i;
+            updateSlidersFromParams();
+            presetBtns.forEach((b, idx) => b.classList.toggle('selected', idx === i));
             updateSimulation();
         }
-    });
-});
-window.addEventListener('resize',()=>{
-    camera.aspect = viewport.clientWidth/viewport.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(viewport.clientWidth, viewport.clientHeight);
-});
 
-// ========== Inicialização ==========
-applyPreset(0);
-updateLiveValues();
-startLoop();
-</script>
+        function updateSlidersFromParams() {
+            document.getElementById('slider-r1').value = simParams.R1;
+            document.getElementById('slider-r2').value = simParams.R2;
+            document.getElementById('slider-r3').value = simParams.R3;
+            document.getElementById('slider-r4').value = simParams.R4;
+            document.getElementById('slider-v1').value = simParams.V1;
+            document.getElementById('slider-v2').value = simParams.V2;
+            updateSliderLabels();
+        }
+
+        function updateSliderLabels() {
+            document.getElementById('val-r1').textContent = formatOhm(simParams.R1);
+            document.getElementById('val-r2').textContent = formatOhm(simParams.R2);
+            document.getElementById('val-r3').textContent = formatOhm(simParams.R3);
+            document.getElementById('val-r4').textContent = formatOhm(simParams.R4);
+            document.getElementById('val-v1').textContent = simParams.V1.toFixed(2);
+            document.getElementById('val-v2').textContent = simParams.V2.toFixed(2);
+        }
+
+        function formatOhm(v) {
+            if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+            if (v >= 1e3) return (v / 1e3).toFixed(1) + 'k';
+            return v.toFixed(0);
+        }
+
+        // ========== Gráfico ==========
+        const MAX_POINTS = 80;
+        const chart = new Chart(chartCanvas, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'R1 (Ω)', borderColor: '#ff6b6b', data: [], yAxisID: 'y-res' },
+                    { label: 'R2 (Ω)', borderColor: '#4ecdc4', data: [], yAxisID: 'y-res' },
+                    { label: 'R3 (Ω)', borderColor: '#45b7d1', data: [], yAxisID: 'y-res' },
+                    { label: 'R4 (Ω)', borderColor: '#f9ca24', data: [], yAxisID: 'y-res' },
+                    { label: 'I1 (µA)', borderColor: '#6c5ce7', data: [] },
+                    { label: 'I2 (µA)', borderColor: '#ff9ff3', data: [] },
+                    { label: '+Vs (V)', borderColor: '#ff6348', data: [] },
+                    { label: '-Vs (V)', borderColor: '#7bed9f', data: [] },
+                    { label: 'Vout (V)', borderColor: '#00ff88', data: [], borderWidth: 3 },
+                    { label: 'Vout1 (V)', borderColor: '#e056a0', data: [] },
+                    { label: 'Vout2 (V)', borderColor: '#f368e0', data: [] },
+                    { label: 'Inv⁻ entrada', borderColor: '#ff9f43', data: [], borderDash: [4, 2] },
+                    { label: 'Não-Inv⁺ entrada', borderColor: '#54a0ff', data: [], borderDash: [4, 2] },
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#8b949e', font: { size: 9 }, boxWidth: 14,
+                        usePointStyle: true } } },
+                scales: {
+                    x: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+                    'y-default': { position: 'left', ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+                    'y-res': { position: 'right', ticks: { color: '#f9ca24', callback: v => formatOhm(v) },
+                        grid: { display: false } }
+                }
+            }
+        });
+
+        function addChartPoint() {
+            const t = new Date().toLocaleTimeString('pt-BR', { hour12: false });
+            chart.data.labels.push(t);
+            chart.data.datasets[0].data.push(computedValues.R1 || simParams.R1);
+            chart.data.datasets[1].data.push(computedValues.R2 || simParams.R2);
+            chart.data.datasets[2].data.push(computedValues.R3 || simParams.R3);
+            chart.data.datasets[3].data.push(computedValues.R4 || simParams.R4);
+            chart.data.datasets[4].data.push(computedValues.I1 * 1e6);
+            chart.data.datasets[5].data.push(computedValues.I2 * 1e6);
+            chart.data.datasets[6].data.push(computedValues.plusVs);
+            chart.data.datasets[7].data.push(computedValues.minusVs);
+            chart.data.datasets[8].data.push(computedValues.Vout);
+            chart.data.datasets[9].data.push(computedValues.Vout1);
+            chart.data.datasets[10].data.push(computedValues.Vout2);
+            chart.data.datasets[11].data.push(computedValues.Vout1);
+            chart.data.datasets[12].data.push(computedValues.Vout2);
+            if (chart.data.labels.length > MAX_POINTS) {
+                chart.data.labels.shift();
+                chart.data.datasets.forEach(ds => ds.data.shift());
+            }
+            chart.update();
+        }
+
+        // ========== Cena 3D ==========
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0d1117);
+        const camera = new THREE.PerspectiveCamera(50, viewport.clientWidth / viewport.clientHeight, 0.5, 60);
+        camera.position.set(8, 6.5, 9);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+        renderer.shadowMap.enabled = true;
+        viewport.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 0.3, 0);
+        controls.enableDamping = true;
+        controls.update();
+
+        scene.add(new THREE.AmbientLight(0x334455, 2.5));
+        const sun = new THREE.DirectionalLight(0xffeedd, 6);
+        sun.position.set(10, 14, 6);
+        sun.castShadow = true;
+        scene.add(sun);
+        scene.add(new THREE.DirectionalLight(0x8899cc, 2).position.set(-4, 3, -3));
+
+        const pcbGroup = new THREE.Group();
+        scene.add(pcbGroup);
+        const board = new THREE.Mesh(
+            new THREE.BoxGeometry(7.5, 0.22, 5.5),
+            new THREE.MeshStandardMaterial({ color: 0x1a5c1a, roughness: 0.55 })
+        );
+        board.position.y = 0;
+        board.receiveShadow = true;
+        pcbGroup.add(board);
+
+        function createResistor(x, z, ry = 0) {
+            const g = new THREE.Group();
+            g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 1.1, 24),
+                new THREE.MeshStandardMaterial({ color: 0xddb860, roughness: 0.5 })).rotateZ(Math.PI / 2));
+            [-0.3, -0.1, 0.15, 0.35].forEach((px, i) => {
+                const band = new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.135, 0.07, 24),
+                    new THREE.MeshStandardMaterial({ color: [0x8B4513, 0x000, 0xf00, 0xffd700][i] }));
+                band.rotation.z = Math.PI / 2;
+                band.position.x = px;
+                g.add(band);
+            });
+            [-0.58, 0.58].forEach(px => {
+                g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 12),
+                    new THREE.MeshStandardMaterial({ color: 0xc0c0c0 })).position.set(px, -0.18, 0));
+            });
+            g.position.set(x, 0.45, z);
+            g.rotation.y = ry;
+            return g;
+        }
+
+        function createDIP8(x, z) {
+            const g = new THREE.Group();
+            g.add(new THREE.Mesh(new THREE.BoxGeometry(2, 0.35, 0.8),
+                new THREE.MeshStandardMaterial({ color: 0x1a1a1a })).position.set(0, 0.3, 0));
+            for (let i = 0; i < 4; i++) {
+                const pin = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 0.08),
+                    new THREE.MeshStandardMaterial({ color: 0xd0d0d0 }));
+                pin.position.set(-0.75 + i * 0.5, -0.05, -0.42);
+                g.add(pin);
+                pin.clone().position.set(-0.75 + i * 0.5, -0.05, 0.42);
+                g.add(pin);
+            }
+            g.position.set(x, 0.25, z);
+            return g;
+        }
+        pcbGroup.add(createDIP8(0, 0));
+        pcbGroup.add(createResistor(-2.2, -0.9, 0));
+        pcbGroup.add(createResistor(0.2, -1.6, Math.PI / 2));
+        pcbGroup.add(createResistor(-2.2, 0.9, 0));
+        pcbGroup.add(createResistor(0.2, 1.6, Math.PI / 2));
+
+        const ledMat = new THREE.MeshStandardMaterial({ color: 0x00ff44, emissive: 0x003300, emissiveIntensity: 0.4 });
+        const led = new THREE.Mesh(new THREE.SphereGeometry(0.12, 20, 20), ledMat);
+        led.position.set(2.8, 0.3, -0.5);
+        pcbGroup.add(led);
+
+        // ========== LOOP ==========
+        let animFrameId = null;
+        let simTimer = 0,
+            chartTimer = 0;
+
+        function loop(ts) {
+            animFrameId = requestAnimationFrame(loop);
+            const dt = Math.min(0.1, 0.016);
+            controls.update();
+            simTimer += dt;
+            chartTimer += dt;
+            if (simTimer >= 0.5) {
+                simTimer = 0;
+                updateSimulation();
+                ledMat.emissive.set(computedValues.Vout > 0 ? 0x00ff44 : 0xff4400);
+                ledMat.emissiveIntensity = 0.2 + Math.abs(computedValues.Vout) / 15 * 2.5;
+            }
+            if (chartTimer >= 0.8) { chartTimer = 0;
+                addChartPoint(); }
+            renderer.render(scene, camera);
+        }
+
+        function startLoop() {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            simTimer = 0;
+            chartTimer = 0;
+            animFrameId = requestAnimationFrame(loop);
+        }
+
+        // ========== RESET ==========
+        function fullReset() {
+            if (animFrameId) { cancelAnimationFrame(animFrameId);
+                animFrameId = null; }
+            simulationMode = 'auto';
+            currentPreset = 0;
+            simParams = { R1: 10000, R2: 10000, R3: 10000, R4: 10000, V1: 1.0, V2: 2.0, plusVs: 15.0, minusVs: -15.0 };
+            computedValues = computeDiffAmp(10000, 10000, 10000, 10000, 1, 2, 15, -15);
+            btnAutoMode.classList.add('active');
+            btnManualMode.classList.remove('active');
+            autoPresetsDiv.style.display = 'block';
+            manualSlidersDiv.style.display = 'none';
+            updateSlidersFromParams();
+            presetBtns.forEach((b, i) => b.classList.toggle('selected', i === 0));
+            updateLiveValues();
+            chart.data.labels.length = 0;
+            chart.data.datasets.forEach(ds => ds.data.length = 0);
+            chart.update();
+            camera.position.set(8, 6.5, 9);
+            controls.target.set(0, 0.3, 0);
+            controls.update();
+            ledMat.emissive.set(0x003300);
+            ledMat.emissiveIntensity = 0.4;
+            startLoop();
+        }
+
+        // ========== Eventos ==========
+        btnReset.addEventListener('click', fullReset);
+        btnAutoMode.addEventListener('click', () => {
+            simulationMode = 'auto';
+            btnAutoMode.classList.add('active');
+            btnManualMode.classList.remove('active');
+            autoPresetsDiv.style.display = 'block';
+            manualSlidersDiv.style.display = 'none';
+            applyPreset(currentPreset);
+        });
+        btnManualMode.addEventListener('click', () => {
+            simulationMode = 'manual';
+            btnManualMode.classList.add('active');
+            btnAutoMode.classList.remove('active');
+            autoPresetsDiv.style.display = 'none';
+            manualSlidersDiv.style.display = 'block';
+            updateSlidersFromParams();
+        });
+        presetBtns.forEach((b, i) => b.addEventListener('click', () => { if (simulationMode === 'auto') applyPreset(
+                i); }));
+        btnApplySetpoint.addEventListener('click', () => {
+            if (simulationMode === 'manual') {
+                simParams.R1 = +document.getElementById('slider-r1').value;
+                simParams.R2 = +document.getElementById('slider-r2').value;
+                simParams.R3 = +document.getElementById('slider-r3').value;
+                simParams.R4 = +document.getElementById('slider-r4').value;
+                simParams.V1 = +document.getElementById('slider-v1').value;
+                simParams.V2 = +document.getElementById('slider-v2').value;
+                updateSliderLabels();
+                updateSimulation();
+            } else applyPreset(currentPreset);
+        });
+        ['slider-r1', 'slider-r2', 'slider-r3', 'slider-r4', 'slider-v1', 'slider-v2'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                if (simulationMode === 'manual') {
+                    simParams.R1 = +document.getElementById('slider-r1').value;
+                    simParams.R2 = +document.getElementById('slider-r2').value;
+                    simParams.R3 = +document.getElementById('slider-r3').value;
+                    simParams.R4 = +document.getElementById('slider-r4').value;
+                    simParams.V1 = +document.getElementById('slider-v1').value;
+                    simParams.V2 = +document.getElementById('slider-v2').value;
+                    updateSliderLabels();
+                    updateSimulation();
+                }
+            });
+        });
+        window.addEventListener('resize', () => {
+            camera.aspect = viewport.clientWidth / viewport.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+        });
+
+        // ========== Inicialização ==========
+        applyPreset(0);
+        updateLiveValues();
+        startLoop();
+    </script>
 </body>
 </html>
